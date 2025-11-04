@@ -34,6 +34,76 @@ def get_base64_image(image_path):
 # === Zamonaviy CSS (to'g'ri ishlaydi) ===
 st.markdown(f"""
 <style>
+    /* ======== Animatsiyalar va 3D effekti ======== */
+    * {
+      transition: all 0.3s ease;
+    }
+    
+    button, .info-card, .result-box, .history-item {
+      transform: translateY(0px);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    button:hover, .info-card:hover, .history-item:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 15px 30px rgba(75, 108, 183, 0.3);
+    }
+    
+    /* Navbar sticky qilib qo'yamiz */
+    header, .header {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      background: rgba(14, 17, 23, 0.85);
+      backdrop-filter: blur(12px);
+      padding: 1rem 0;
+      border-bottom: 2px solid rgba(75,108,183,0.3);
+    }
+    
+    /* Tahlil jarayonida progress bar */
+    .progress-container {
+      width: 100%;
+      background-color: rgba(255,255,255,0.15);
+      border-radius: 10px;
+      margin-top: 1rem;
+      height: 10px;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 10px;
+      width: 0;
+      background: linear-gradient(90deg, #4b6cb7, #182848);
+      border-radius: 10px;
+      animation: progress 3s linear forwards;
+    }
+    
+    @keyframes progress {
+      from { width: 0%; }
+      to { width: 100%; }
+    }
+    
+    /* Natija chiqayotganda "pulse" effekti */
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(75,108,183,0.6); }
+      70% { box-shadow: 0 0 0 20px rgba(75,108,183,0); }
+      100% { box-shadow: 0 0 0 0 rgba(75,108,183,0); }
+    }
+    .result-box {
+      animation: pulse 2s infinite;
+    }
+    
+    /* Tarix kartalari hoverda kengayadi */
+    .history-item:hover {
+      transform: scale(1.05);
+      background: rgba(75,108,183,0.25);
+    }
+    
+    /* Dark/Light o‘tish silliq */
+    body, .stApp {
+      transition: background 0.5s ease, color 0.5s ease;
+    }
+
     .stApp {{
         background: {'#0e1117' if st.session_state.dark_mode else 'linear-gradient(135deg, #8EC5FC, #E0C3FC)'};
         min-height: 100vh;
@@ -330,4 +400,5 @@ elif st.session_state.page == 'history':
 elif st.session_state.page == 'contact':
     contact_page()
 st.markdown("<div class='footer'>Barcha huquqlar himoyalangan • AI faqat maslahat uchun</div>", unsafe_allow_html=True)
+
 
