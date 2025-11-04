@@ -158,30 +158,7 @@ st.markdown(f"""
         max-width: 100%;
     }}
     .stButton > button {{
-    /* Navbar tugmalari – bir xil o‘lcham, har doim to‘liq kolon kengligida */
-    .navbar-btn, div[data-testid="column"] > div > div > button {
-        width: 100% !important;
-        min-width: 140px !important;
-        height: 52px !important;
-        padding: 0.8rem 1.2rem !important;
-        font-size: 1rem !important;
-        font-weight: 600 !important;
-        border-radius: 14px !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        margin: 0.4rem auto !important;
-        background: rgba(255,255,255,0.25) !important;
-        color: white !important;
-        border: 2px solid #4b6cb7 !important;
-        transition: all 0.3s !important;
-    }
-    div[data-testid="column"] > div > div > button:hover {
-        background: #4b6cb7 !important;
-        transform: translateY(-3px) !important;
-        box-shadow: 0 8px 20px rgba(75,108,183,0.4) !important;
-    }
-    
+
     }}
     .stButton > button:hover {{
         background: #182848 !important;
@@ -393,4 +370,5 @@ elif st.session_state.page == 'contact':
     contact_page()
 
 st.markdown("<div class='footer'>Barcha huquqlar himoyalangan • AI faqat maslahat uchun</div>", unsafe_allow_html=True)
+
 
