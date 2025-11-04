@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 # =======================================================
-# Skin Cancer AI Detector – To'liq to'g'rilangan & Professional
+# Skin Cancer AI Detector – To'liq to'g'rilangan, Interaktiv & Professional
 # =======================================================
+
 import streamlit as st
 from inference_sdk import InferenceHTTPClient
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 import os
 import base64
+
 # === KONFIGURATSIYA ===
 API_URL = "https://detect.roboflow.com"
 API_KEY = "Kz1uRQNYQfiMGbhGigCh"
@@ -15,39 +17,51 @@ MODEL_ID = "classification-igqvf/1"
 OUTPUT_DIR = "results"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 CLIENT = InferenceHTTPClient(api_url=API_URL, api_key=API_KEY)
+
 # === Sahifa sozlamalari ===
 st.set_page_config(
     page_title="Skin Cancer AI",
-    page_icon="brain",
+    page_icon="🧠",
     layout="centered",
     initial_sidebar_state="collapsed"
 )
+
 # === Session state ===
 if 'page' not in st.session_state:
     st.session_state.page = 'home'
 if 'dark_mode' not in st.session_state:
     st.session_state.dark_mode = False
+
 # === Fon rasmini base64 ga aylantirish (ixtiyoriy) ===
 def get_base64_image(image_path):
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
-# === Zamonaviy CSS (to'g'ri ishlaydi) ===
+
+# === Zamonaviy CSS (Interaktiv + Animatsiya) ===
 st.markdown(f"""
 <style>
+    * {{
+        transition: all 0.3s ease;
+    }}
     .stApp {{
         background: {'#0e1117' if st.session_state.dark_mode else 'linear-gradient(135deg, #8EC5FC, #E0C3FC)'};
         min-height: 100vh;
         font-family: 'Inter', sans-serif;
     }}
     .header {{
+        position: sticky;
+        top: 0;
+        z-index: 999;
         text-align: center;
         color: {'#ffffff' if st.session_state.dark_mode else 'white'};
         font-size: 2.8rem;
         font-weight: 800;
         margin: 1rem 0 1.5rem;
         text-shadow: {'none' if st.session_state.dark_mode else '0 2px 4px rgba(0,0,0,0.3)'};
+        background: rgba(14,17,23,0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 2px solid rgba(75,108,183,0.3);
     }}
-    /* Navbar tugmalari – bir xil o‘lcham */
     div[data-testid="column"] > div > div > button {{
         background: {'rgba(255,255,255,0.15)' if st.session_state.dark_mode else 'rgba(255,255,255,0.25)'} !important;
         color: white !important;
@@ -60,7 +74,6 @@ st.markdown(f"""
         height: 52px !important;
         width: 100% !important;
         backdrop-filter: blur(10px) !important;
-        transition: all 0.3s !important;
         margin: 0.4rem auto !important;
         display: flex !important;
         align-items: center !important;
@@ -68,24 +81,20 @@ st.markdown(f"""
     }}
     div[data-testid="column"] > div > div > button:hover {{
         background: #4b6cb7 !important;
-        transform: translateY(-3px) !important;
-        box-shadow: 0 8px 20px rgba(75, 108, 183, 0.4) !important;
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 15px 30px rgba(75,108,183,0.3) !important;
     }}
-    /* Info kartalar */
     .info-card {{
-       
         padding: 0.7rem;
-      
         backdrop-filter: blur(12px);
         transition: all 0.3s;
         text-align: center;
         height: 100%;
-     
     }}
     .info-card:hover {{
         background: {'rgba(30, 33, 43, 0.9)' if st.session_state.dark_mode else 'rgba(255,255,255,0.35)'};
-        transform: translateY(-8px);
-        box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 15px 30px rgba(75,108,183,0.3);
         border: 1px solid {'rgba(255,255,255,0.1)' if st.session_state.dark_mode else 'rgba(255,255,255,0.4)'};
     }}
     .info-card img {{
@@ -114,6 +123,12 @@ st.markdown(f"""
         margin: 1.5rem 0;
         box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         border: 1px solid #4b6cb7;
+        animation: pulse 2s infinite;
+    }}
+    @keyframes pulse {{
+        0% {{ box-shadow: 0 0 0 0 rgba(75,108,183,0.6); }}
+        70% {{ box-shadow: 0 0 0 20px rgba(75,108,183,0); }}
+        100% {{ box-shadow: 0 0 0 0 rgba(75,108,183,0); }}
     }}
     .result-img {{
         border-radius: 16px;
@@ -130,6 +145,11 @@ st.markdown(f"""
         text-align: center;
         color: white;
         border: 1px solid rgba(75,108,183,0.3);
+        transform: scale(1);
+    }}
+    .history-item:hover {{
+        transform: scale(1.05);
+        background: rgba(75,108,183,0.25);
     }}
     .history-item img {{
         border-radius: 12px;
@@ -166,16 +186,38 @@ st.markdown(f"""
         border-radius: 50px;
         padding: 0.5rem;
     }}
+    /* Progress bar */
+    .progress-container {{
+        width: 100%;
+        background-color: rgba(255,255,255,0.15);
+        border-radius: 10px;
+        margin-top: 1rem;
+        height: 10px;
+        overflow: hidden;
+    }}
+    .progress-bar {{
+        height: 10px;
+        width: 0;
+        background: linear-gradient(90deg, #4b6cb7, #182848);
+        border-radius: 10px;
+        animation: progress 3s linear forwards;
+    }}
+    @keyframes progress {{
+        from {{ width: 0%; }}
+        to {{ width: 100%; }}
+    }}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 """, unsafe_allow_html=True)
+
 # === Dark Mode Toggle ===
 with st.container():
     col1, col2 = st.columns([6, 1])
     with col2:
         if st.button("Dark" if not st.session_state.dark_mode else "Light", key="theme"):
             st.session_state.dark_mode = not st.session_state.dark_mode
-            st.rerun() # st.experimental_rerun() o'rniga
+            st.rerun()
+
 # === Navbar ===
 def show_nav():
     st.markdown("<div class='header'>Skin Cancer AI Detector</div>", unsafe_allow_html=True)
@@ -187,10 +229,10 @@ def show_nav():
             if st.button(text, key=f"nav_{text}"):
                 st.session_state.page = page
     st.markdown("<hr style='border:0;height:2px;background:linear-gradient(90deg,transparent,#4b6cb7,transparent);margin:1.5rem 0;'>", unsafe_allow_html=True)
+
 # === Bosh sahifa ===
 def home_page():
     st.markdown("<h2 style='text-align:center;color:white;margin-bottom:1.5rem;'>Teri saratoni turlari</h2>", unsafe_allow_html=True)
-   
     cards = [
         ("Melanoma", "Eng xavfli turi. Rangi o‘zgaruvchi, assimetrik dog‘lar bilan namoyon bo‘ladi.",
          "https://img.lb.wbmdstatic.com/vim/live/webmd/consumer_assets/site_images/article_thumbnails/reference_guide/malignant_melanoma_ref_guide/1800x1200_malignant_melanoma_ref_guide.jpg"),
@@ -213,29 +255,30 @@ def home_page():
             """, unsafe_allow_html=True)
     st.markdown("<h3 style='color:white;text-align:center;margin:2.5rem 0 1.5rem;'>AI qanday ishlaydi?</h3>", unsafe_allow_html=True)
     st.success("""
-    **1. Rasm yuklang** → Yuqori sifatli teri fotosurati
-    **2. AI tahlil qiladi** → 1000+ o‘qitilgan namunalar bilan solishtirish
+    **1. Rasm yuklang** → Yuqori sifatli teri fotosurati  
+    **2. AI tahlil qiladi** → 1000+ o‘qitilgan namunalar bilan solishtirish  
     **3. Natija chiqaradi** → Saraton turi + ishonchlilik foizi
     """)
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1,2,1])
     with col2:
         if st.button("AI Tekshiruvni Boshlash", type="primary"):
             st.session_state.page = 'ai'
+
 # === AI Tekshiruv ===
 def ai_page():
     st.markdown("<h2 style='text-align:center;color:white;margin-bottom:1.5rem;'>Teri rasmini yuklang</h2>", unsafe_allow_html=True)
-   
-    uploaded_file = st.file_uploader(
-        "JPG, PNG formatidagi rasmni yuklang",
-        type=["jpg", "jpeg", "png"],
-        label_visibility="collapsed"
-    )
+    uploaded_file = st.file_uploader("JPG, PNG formatidagi rasmni yuklang", type=["jpg","jpeg","png"], label_visibility="collapsed")
     if uploaded_file:
-        col1, col2 = st.columns([1, 1])
+        col1, col2 = st.columns([1,1])
         with col1:
             st.image(uploaded_file, caption="Yuklangan rasm", use_column_width=True)
         with col2:
             if st.button("AI bilan tahlil qilish", type="primary"):
+                st.markdown("""
+                <div class='progress-container'>
+                    <div class='progress-bar'></div>
+                </div>
+                """, unsafe_allow_html=True)
                 with st.spinner("AI tahlil qilmoqda..."):
                     try:
                         img_path = os.path.join(OUTPUT_DIR, uploaded_file.name)
@@ -247,18 +290,18 @@ def ai_page():
                             label, conf = "Aniqlanmadi", 0
                         else:
                             label, info = max(preds.items(), key=lambda x: x[1]["confidence"])
-                            conf = info["confidence"] * 100
+                            conf = info["confidence"]*100
                         img = Image.open(img_path)
                         draw = ImageDraw.Draw(img)
                         try:
                             font = ImageFont.truetype("arial.ttf", 40)
                         except:
                             font = ImageFont.load_default()
-                        draw.text((20, 20), f"{label} ({conf:.1f}%)", fill="#ff0066", font=font, stroke_width=3, stroke_fill="black")
+                        draw.text((20,20), f"{label} ({conf:.1f}%)", fill="#ff0066", font=font, stroke_width=3, stroke_fill="black")
                         result_name = f"result_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
                         result_path = os.path.join(OUTPUT_DIR, result_name)
                         img.save(result_path)
-                        with open(os.path.join(OUTPUT_DIR, "history.txt"), "a", encoding="utf-8") as f:
+                        with open(os.path.join(OUTPUT_DIR,"history.txt"), "a", encoding="utf-8") as f:
                             f.write(f"{result_path}|{label}|{conf:.1f}|{datetime.now().strftime('%Y-%m-%d %H:%M')}\n")
                         st.markdown(f"""
                         <div class='result-box'>
@@ -276,30 +319,30 @@ def ai_page():
                             st.info("Past ehtimollik. Doimiy kuzatish tavsiya etiladi.")
                     except Exception as e:
                         st.error(f"Xatolik: {str(e)}")
+
 # === Tarix ===
 def history_page():
     st.markdown("<h2 style='text-align:center;color:white;margin-bottom:1.5rem;'>Tekshiruvlar tarixi</h2>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1,2,1])
     with col2:
         if st.button("Tarixni tozalash", type="secondary"):
             for f in os.listdir(OUTPUT_DIR):
-                path = os.path.join(OUTPUT_DIR, f)
+                path = os.path.join(OUTPUT_DIR,f)
                 if os.path.isfile(path):
                     os.remove(path)
             st.success("Barcha ma'lumotlar tozalandi!")
-            st.rerun() # To'g'ri!
-    history_file = os.path.join(OUTPUT_DIR, "history.txt")
+            st.rerun()
+    history_file = os.path.join(OUTPUT_DIR,"history.txt")
     if not os.path.exists(history_file):
         st.info("Hozircha hech qanday tekshiruv yo‘q.")
         return
-    with open(history_file, "r", encoding="utf-8") as f:
+    with open(history_file,"r",encoding="utf-8") as f:
         lines = f.readlines()[::-1]
     cols = st.columns(3)
-    for i, line in enumerate(lines):
-        path, label, conf, time = line.strip().split("|")
-        with cols[i % 3]:
-            # Base64 orqali rasm ko'rsatish
-            with open(path, "rb") as img_file:
+    for i,line in enumerate(lines):
+        path,label,conf,time = line.strip().split("|")
+        with cols[i%3]:
+            with open(path,"rb") as img_file:
                 img_base64 = base64.b64encode(img_file.read()).decode()
             st.markdown(f"""
             <div class='history-item'>
@@ -309,6 +352,7 @@ def history_page():
                 <small>{time}</small>
             </div>
             """, unsafe_allow_html=True)
+
 # === Aloqa ===
 def contact_page():
     st.markdown("<h2 style='text-align:center;color:white;margin-bottom:1.5rem;'>Bog‘lanish</h2>", unsafe_allow_html=True)
@@ -319,6 +363,7 @@ def contact_page():
         <p style='margin:1.5rem 0 0;font-size:0.95rem;color:#ccc;'>© 2025 Skin Cancer AI Detector</p>
     </div>
     """, unsafe_allow_html=True)
+
 # === Asosiy oqim ===
 show_nav()
 if st.session_state.page == 'home':
@@ -329,7 +374,5 @@ elif st.session_state.page == 'history':
     history_page()
 elif st.session_state.page == 'contact':
     contact_page()
+
 st.markdown("<div class='footer'>Barcha huquqlar himoyalangan • AI faqat maslahat uchun</div>", unsafe_allow_html=True)
-
-
-
